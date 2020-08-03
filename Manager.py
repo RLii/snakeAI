@@ -1,0 +1,3 @@
+import snakeGame
+
+snakeGame.gameLoop()
