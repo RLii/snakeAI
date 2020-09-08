@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import random
 
 
@@ -32,6 +32,9 @@ class InputNode:
 
     def set_inputs(self, x):
         self.inputs = x
+
+    def get_inputs(self):
+        return self.inputs
 
 
 class HiddenNode:
@@ -103,7 +106,36 @@ class NeuralNet:
             output = []
             self.output_nodes.append(OutputNode(weights, output, 0))
 
-            
+    def forward_propagate(self, inputs):
+
+        #CALCULATING THE ACTIVATION FOR THE FIRST HIDDEN LAYER
+
+        input_matrix = []
+        weight_matrix = []
+
+        # Retrieving the input matrix for the input
+        for i in range(len(self.input_nodes)):
+            self.input_nodes[i].set_inputs(inputs[i])
+            input_matrix.append(self.input_nodes[i].get_inputs())
+
+        input_matrix = np.array(input_matrix).reshape(1, 24)
+
+        # Retrieving the weight matrix for the input to hidden layer
+        input_to_hidden_weights = []
+        for x in range(len(self.input_nodes)):
+            for y in range(len(self.hidden_layers[0])):
+                input_to_hidden_weights.append(self.input_nodes[y].get_weight(x))
+            weight_matrix.append(input_to_hidden_weights)
 
 
-NeuralNet(24, 2, 16, 4)
+
+
+
+
+
+
+
+
+
+a = NeuralNet(24, 2, 16, 4)
+a.forward_propagate([2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7])
