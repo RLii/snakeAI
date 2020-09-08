@@ -91,7 +91,7 @@ def gameLoop():
         if check_collision(x1, y1, snake_list):
             alive = False
 
-        if x1 > DISPLAY_width or y1 > DISPLAY_height or x1 < 0 or y1 < 0:
+        if x1 >= DISPLAY_width or y1 >= DISPLAY_height or x1 < 0 or y1 < 0:
             alive = False
 
         DISPLAY.fill(black)

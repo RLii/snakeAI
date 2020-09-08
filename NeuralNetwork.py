@@ -8,21 +8,30 @@ def sigmoid(x):
 
 class OutputNode:
 
-    def __init__(self, weight_in, output, bias):
-        self.weight_in = weight_in
+    def __init__(self, in_weight, output, bias):
+        self.in_weight = in_weight
         self.output = output
         self.bias = bias
+        self.activation = 0
 
+    def set_activation(self,activation):
+        self.activation = activation
+
+    def get_activation(self):
+        return self.activation
 
 class InputNode:
 
-    def __init__(self, inputs, weights, bias):
+    def __init__(self, inputs, out_weights, bias):
         self.inputs = inputs
-        self.weights = weights
+        self.out_weights = out_weights
         self.bias = bias
 
     def get_weight(self, x):
-        return self.weights[x]
+        return self.out_weights[x]
+
+    def set_inputs(self, x):
+        self.inputs = x
 
 
 class HiddenNode:
@@ -31,9 +40,16 @@ class HiddenNode:
         self.in_weights = in_weights
         self.out_weights = out_weights
         self.bias = bias
+        self.activation = 0
 
     def get_out_weight(self, x):
         return self.out_weights[x]
+
+    def set_activation(self, activation):
+        self.activation = activation
+
+    def get_activation(self):
+        return self.activation
 
 
 class NeuralNet:
@@ -87,7 +103,7 @@ class NeuralNet:
             output = []
             self.output_nodes.append(OutputNode(weights, output, 0))
 
-        print(self.hidden_layers[0][0].in_weights)
+            
 
 
 NeuralNet(24, 2, 16, 4)
