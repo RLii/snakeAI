@@ -3,7 +3,7 @@ import random
 
 
 def sigmoid(x):
-    return 1 / (1 + numpy.exp(-x))
+    return 1 / (1 + np.exp(-x))
 
 
 class OutputNode:
