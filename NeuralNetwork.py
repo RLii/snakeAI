@@ -108,7 +108,7 @@ class NeuralNet:
 
     def forward_propagate(self, inputs):
 
-        #CALCULATING THE ACTIVATION FOR THE FIRST HIDDEN LAYER
+        # /////////////////////////////CALCULATING THE ACTIVATION FOR THE FIRST HIDDEN LAYER////////////////////////////////
 
         input_matrix = []
         weight_matrix = []
@@ -135,7 +135,30 @@ class NeuralNet:
         # Added the first layer activations to the hidden nodes
         for i in range(len(first_hidden_activations[0])):
             self.hidden_layers[0][i].set_activation(sigmoid(first_hidden_activations[0][i]))
-            print(self.hidden_layers[0][i].get_activation())
+
+        # ////////////////////////////////////////////////Activation for the other hidden nodes///////////////////////////////////////////
+        for i in range(1, len(self.hidden_layers)):
+            hidden_weights = []
+
+            # Gather weight data into hidden weights, results in 16 X 16
+            for x in range(len(self.hidden_layers[i])):
+                temp_weights = []
+                for y in range(len(self.hidden_layers[i-1])):
+                    temp_weights.append(self.hidden_layers[i-1][y].get_out_weight(x))
+                hidden_weights.append(temp_weights)
+
+            hidden_weights = np.array(hidden_weights).reshape(16, 16)
+
+            hidden_activations = np.dot(first_hidden_activations, hidden_weights)
+
+            # Sets hidden layer activations
+            for x in range(len(hidden_activations[0])):
+                self.hidden_layers[i][x].set_activation(hidden_activations[0][x])
+
+
+
+
+
 
 
 
