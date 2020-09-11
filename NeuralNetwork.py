@@ -59,7 +59,7 @@ class NeuralNet:
 
     def __init__(self, num_of_inputs, num_of_hidden_layers, num_of_hidden_nodes, num_of_outputs):
         # VARIABLES
-        weight_initialization = 3
+        weight_initialization = 2
 
         # INITIALIZE INPUT NODES
         self.input_nodes = []
@@ -121,11 +121,28 @@ class NeuralNet:
         input_matrix = np.array(input_matrix).reshape(1, 24)
 
         # Retrieving the weight matrix for the input to hidden layer
-        input_to_hidden_weights = []
-        for x in range(len(self.input_nodes)):
-            for y in range(len(self.hidden_layers[0])):
+        for x in range(len(self.hidden_layers[0])):
+            input_to_hidden_weights = []
+            for y in range(len(self.input_nodes)):
                 input_to_hidden_weights.append(self.input_nodes[y].get_weight(x))
             weight_matrix.append(input_to_hidden_weights)
+
+        weight_matrix = np.array(weight_matrix).reshape(len(self.input_nodes), len(self.hidden_layers[0]))
+
+        first_hidden_activations = np.dot(input_matrix, weight_matrix)
+
+
+        # Added the first layer activations to the hidden nodes
+        for i in range(len(first_hidden_activations[0])):
+            self.hidden_layers[0][i].set_activation(sigmoid(first_hidden_activations[0][i]))
+            print(self.hidden_layers[0][i].get_activation())
+
+
+
+
+
+
+
 
 
 
