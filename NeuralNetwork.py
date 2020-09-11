@@ -12,13 +12,13 @@ class OutputNode:
         self.in_weight = in_weight
         self.output = output
         self.bias = bias
-        self.activation = 0
+        self.output = 0
 
-    def set_activation(self,activation):
-        self.activation = activation
+    def set_output(self, output):
+        self.output = output
 
-    def get_activation(self):
-        return self.activation
+    def get_output(self):
+        return self.output
 
 class InputNode:
 
@@ -153,7 +153,34 @@ class NeuralNet:
 
             # Sets hidden layer activations
             for x in range(len(hidden_activations[0])):
-                self.hidden_layers[i][x].set_activation(hidden_activations[0][x])
+                self.hidden_layers[i][x].set_activation(sigmoid(hidden_activations[0][x]))
+
+
+        # ////////////////////////////////////////////////Activation for the output///////////////////////////////////////////
+
+        last_hidden_activations = []
+        output_weights = []
+
+        # Gather hidden activations
+        for i in range(len(self.hidden_layers[len(self.hidden_layers)-1])):
+            last_hidden_activations.append(self.hidden_layers[len(self.hidden_layers)-1][i].get_activation())
+
+        # Gather output weights
+        for x in range(len(self.output_nodes)):
+            temp_weights = []
+            for y in range(len(self.hidden_layers[len(self.hidden_layers)-1])):
+                temp_weights.append(self.hidden_layers[len(self.hidden_layers)-1][y].get_out_weight(x))
+            output_weights.append(temp_weights)
+
+        outputs = np.dot(np.array(output_weights), np.array(last_hidden_activations))
+
+        # set outputs
+        for i in range(len(outputs)):
+            self.output_nodes[i].set_output(sigmoid(outputs[i]))
+
+
+
+
 
 
 
