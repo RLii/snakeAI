@@ -118,7 +118,7 @@ class NeuralNet:
             self.input_nodes[i].set_inputs(inputs[i])
             input_matrix.append(self.input_nodes[i].get_inputs())
 
-        input_matrix = np.array(input_matrix).reshape(1, 24)
+        input_matrix = np.array(input_matrix).reshape(1, len(self.input_nodes))
 
         # Retrieving the weight matrix for the input to hidden layer
         for x in range(len(self.hidden_layers[0])):
@@ -147,7 +147,7 @@ class NeuralNet:
                     temp_weights.append(self.hidden_layers[i-1][y].get_out_weight(x))
                 hidden_weights.append(temp_weights)
 
-            hidden_weights = np.array(hidden_weights).reshape(16, 16)
+            hidden_weights = np.array(hidden_weights).reshape(len(self.hidden_layers[0]), len(self.hidden_layers[0]))
 
             hidden_activations = np.dot(first_hidden_activations, hidden_weights)
 
@@ -178,31 +178,16 @@ class NeuralNet:
         for i in range(len(outputs)):
             self.output_nodes[i].set_output(sigmoid(outputs[i]))
 
+    def getMovement(self):
+        output = []
+        for i in range(len(self.output_nodes)):
+            output.append(self.output_nodes[i].get_output())
+        ans = [0] * len(self.output_nodes)
+        ans[output.index(max(output))] = 1
+        return ans
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-a = NeuralNet(24, 2, 16, 4)
-a.forward_propagate([2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7])
+a = NeuralNet(16, 2, 16, 4)
+a.forward_propagate([200,200,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7])

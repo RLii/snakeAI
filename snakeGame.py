@@ -1,5 +1,6 @@
 import pygame
 import random
+import NeuralNetwork
 
 pygame.init()
 DISPLAY = pygame.display.set_mode((800, 600))
@@ -17,6 +18,7 @@ DISPLAY_width = 800
 DISPLAY_height = 600
 font_style = pygame.font.SysFont(None, 30)
 
+nn = NeuralNetwork.NeuralNet(16, 2, 8, 4)
 
 def show_score(length):
     DISPLAY.blit(font_style.render("Score: " + str(length-1), True, (255, 255, 255)), [0, 0])
@@ -38,6 +40,70 @@ def message(msg, color):
     DISPLAY.blit(mesg, [200, 150])
 
 
+#NEURAL NETWORK Helpers
+def getAppleQuadrant(foodX, foodY, x1, y1):
+    list = [0] * 4
+    if x1 <= foodX and y1 <= foodY:
+        list[0] = 1
+    elif x1 > foodX and y1 <= foodY:
+        list[1] = 1
+    elif x1 <= foodX and y1 > foodY:
+        list[2] = 1
+    elif x1 > foodX and y1 > foodY:
+        list[3] = 1
+    return list
+
+def getHeadDirection(x1_change, y1_change):
+    list = [0] * 4
+    if x1_change > 0:
+        list[0] = 1
+    elif x1_change < 0:
+        list[1] = 1
+    elif y1_change > 0:
+        list[2] = 1
+    elif y1_change < 0:
+        list[3] = 1
+    return list
+
+def getTailDirection(snake_list):
+    list = [0] * 4
+    if snake_list[0][0] - snake_list[1][0] > 0:
+        list[0] = 1
+    elif snake_list[0][0] - snake_list[1][0] < 0:
+        list[1] = 1
+    elif snake_list[0][1] - snake_list[1][1] > 0:
+        list[2] = 1
+    elif snake_list[0][1] - snake_list[1][1] < 0:
+        list[3] = 1
+    return list
+
+
+def getSnakeVisuals(x1, y1, snake_list):
+    xVision = [-1] * 2
+    yVision = [-1] * 2
+    for i in range(len(snake_list)):
+        if snake_list[len(snake_list) - 1 - i][0] == x1 and xVision[0] == -1 or xVision[1] == -1:
+            if snake_list[len(snake_list) - 1 - i][1] <= y1 and yVision[0] == -1:
+                yVision[0] = (y1 - snake_list[len(snake_list) - 1 - i][1]) / 20 - 1
+            elif snake_list[len(snake_list) - 1 - i][1] > y1 and yVision[1] == -1:
+                yVision[1] = (snake_list[len(snake_list) - 1 - i][1] - y1) / 20 - 1
+
+        if snake_list[len(snake_list) - 1 - i][1] == y1 and yVision[0] == -1 or yVision[1] == -1:
+            if snake_list[len(snake_list) - 1 - i][0] <= x1 and xVision[0] == -1:
+                xVision[0] = (x1 - snake_list[len(snake_list) - 1 - i][0]) / 20 - 1
+            elif snake_list[len(snake_list) - 1 - i][0] > x1 and xVision[1] == -1:
+                xVision[1] = (snake_list[len(snake_list) - 1 - i][0] - x1) / 20 - 1
+    if xVision[0] == -1:
+        xVision[0] = x1/20
+    if xVision[1] == -1:
+        xVision[1] = (DISPLAY_width - x1) / 20 - 1
+    if yVision[0] == -1:
+        yVision[0] = y1/20
+    if yVision[1] == -1:
+        yVision[1] = (DISPLAY_height - y1) / 20 - 1
+    return xVision + yVision
+
+
 def gameLoop():
     x1 = 400
     y1 = 300
@@ -50,8 +116,8 @@ def gameLoop():
     alive = True
     game_close = False
 
-    snake_list = []
-    snake_length = 1
+    snake_list = [[360, 300], [380, 300]]
+    snake_length = 3
 
     foodX = random.randrange(0, DISPLAY_width - block_movement, block_movement)
     foodY = random.randrange(0, DISPLAY_height - block_movement, block_movement)
@@ -69,22 +135,42 @@ def gameLoop():
                     if event.key == pygame.K_r:
                         gameLoop()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                alive = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    x1_change = -block_movement
-                    y1_change = 0
-                elif event.key == pygame.K_RIGHT:
-                    x1_change = block_movement
-                    y1_change = 0
-                elif event.key == pygame.K_DOWN:
-                    x1_change = 0
-                    y1_change = block_movement
-                elif event.key == pygame.K_UP:
-                    x1_change = 0
-                    y1_change = -block_movement
+
+        #Controls
+        #for event in pygame.event.get():
+        #    if event.type == pygame.QUIT:
+        #        alive = False
+        #    if event.type == pygame.KEYDOWN:
+        #        if event.key == pygame.K_LEFT:
+        #           x1_change = -block_movement
+        #           y1_change = 0
+        #       elif event.key == pygame.K_RIGHT:
+        #           x1_change = block_movement
+        #           y1_change = 0
+        #       elif event.key == pygame.K_DOWN:
+        #           x1_change = 0
+        #           y1_change = block_movement
+        #       elif event.key == pygame.K_UP:
+        #           x1_change = 0
+        #           y1_change = -block_movement
+
+        #NeuralNet Controls
+        params = getSnakeVisuals(x1, y1, snake_list) + getAppleQuadrant(foodX, foodY, x1, y1) + getHeadDirection(x1_change,y1_change) + getTailDirection(snake_list)
+        nn.forward_propagate(params)
+        movement = nn.getMovement()
+        if movement[0] == 1:
+            x1_change = -block_movement
+            y1_change = 0
+        elif movement[1] == 1:
+            x1_change = block_movement
+            y1_change = 0
+        elif movement[2] == 1:
+            x1_change = 0
+            y1_change = block_movement
+        elif movement[3] == 1:
+            x1_change = 0
+            y1_change = -block_movement
+
         x1 += x1_change
         y1 += y1_change
 
@@ -104,10 +190,9 @@ def gameLoop():
         show_score(snake_length)
         pygame.draw.rect(DISPLAY, red, [foodX, foodY, block_movement, block_movement])
 
-        draw_snake(block_movement,snake_list)
+        draw_snake(block_movement, snake_list)
 
         pygame.display.update()
-
         if x1 == foodX and y1 == foodY:
             foodX = random.randrange(0, DISPLAY_width - block_movement, block_movement)
             foodY = random.randrange(0, DISPLAY_height - block_movement, block_movement)
