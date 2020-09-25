@@ -8,8 +8,7 @@ def sigmoid(x):
 
 class OutputNode:
 
-    def __init__(self, in_weight, output, bias):
-        self.in_weight = in_weight
+    def __init__(self, output, bias):
         self.output = output
         self.bias = bias
         self.output = 0
@@ -39,13 +38,12 @@ class InputNode:
 
 class HiddenNode:
 
-    def __init__(self, bias, in_weights, out_weights):
-        self.in_weights = in_weights
+    def __init__(self, out_weights, bias):
         self.out_weights = out_weights
         self.bias = bias
         self.activation = 0
 
-    def get_out_weight(self, x):
+    def get_weight(self, x):
         return self.out_weights[x]
 
     def set_activation(self, activation):
@@ -59,14 +57,14 @@ class NeuralNet:
 
     def __init__(self, num_of_inputs, num_of_hidden_layers, num_of_hidden_nodes, num_of_outputs):
         # VARIABLES
-        weight_initialization = 2
+        self.weight_initialization = 2
 
         # INITIALIZE INPUT NODES
         self.input_nodes = []
         for i in range(num_of_inputs):
             weights = []
             for x in range(num_of_hidden_nodes):
-                weights.append(random.uniform(-weight_initialization, weight_initialization))
+                weights.append(random.uniform(-self.weight_initialization, self.weight_initialization))
 
             self.input_nodes.append(InputNode(weights, 0))
 
@@ -77,55 +75,97 @@ class NeuralNet:
             # BUILDING WEIGHTS FOR EACH NODE
             for x in range(num_of_hidden_nodes):
                 weights_out = []
-                weights_in = []
                 if i == num_of_hidden_layers - 1:
                     for y in range(num_of_outputs):
-                        weights_out.append(random.uniform(-weight_initialization, weight_initialization))
+                        weights_out.append(random.uniform(-self.weight_initialization, self.weight_initialization))
                 else:
                     for y in range(num_of_hidden_nodes):
-                        weights_out.append(random.uniform(-weight_initialization, weight_initialization))
-                if i == 0:
-                    for y in self.input_nodes:
-                        weights_in.append(y.get_weight(x))
-                else:
-                    for y in self.hidden_layers[i-1]:
-                        weights_in.append(y.get_out_weight(x))
-                hidden_nodes.append(HiddenNode(0, weights_in, weights_out))
+                        weights_out.append(random.uniform(-self.weight_initialization, self.weight_initialization))
+                hidden_nodes.append(HiddenNode(weights_out, 0))
 
             self.hidden_layers.append(hidden_nodes)
 
         # INITIALIZE OUTPUT NODES
         self.output_nodes = []
         for i in range(num_of_outputs):
-            weights = []
-            for x in range(num_of_hidden_nodes):
-                weights.append(self.hidden_layers[num_of_hidden_layers-1][x].get_out_weight(i))
             # OUTPUT NOT INITIALIZED YET !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             output = []
-            self.output_nodes.append(OutputNode(weights, output, 0))
+            self.output_nodes.append(OutputNode(output, 0))
 
     def offspring(self, parent1, parent2):
 
         offspring = NeuralNet(len(parent1.input_nodes), len(parent1.hidden_layers), len(parent1.hidden_layers[0]), len(parent1.output_nodes))
         inputNodeLength = len(parent1.input_nodes)
         hiddenNodeLength = len(parent1.hidden_layers[0])
+        outputNodeLength = len(parent1.output_nodes)
+        numOfHiddenLayers = len(parent1.hidden_layers)
+        mutationRate = 0.001
+
+
         for i in range(inputNodeLength):
             geneSplit1 = random.randrange(1, hiddenNodeLength-1)
             if geneSplit1 > hiddenNodeLength//2:
                 geneSplit2 = random.randrange(1, geneSplit1)
             else:
-                geneSplit2 = random.randrange(geneSplit1 + 1, hiddenNodeLength-1)
+                geneSplit2 = random.randrange(geneSplit1, hiddenNodeLength-1)
 
             weights = []
             for x in range(hiddenNodeLength):
-                if x < geneSplit1:
-                    weights.append(parent1.input_nodes[i].get_weight(x))
-                elif x < geneSplit2:
-                    weights.append(parent2.input_nodes[i].get_weight(x))
+                if random.uniform(0, 1) <= mutationRate:
+                    weights.append(random.uniform(-self.weight_initialization, self.weight_initialization))
                 else:
-                    weights.append(parent1.input_nodes[i].get_weight(x))
+                    if x < geneSplit1:
+                        weights.append(parent1.input_nodes[i].get_weight(x))
+                    elif x < geneSplit2:
+                        weights.append(parent2.input_nodes[i].get_weight(x))
+                    else:
+                        weights.append(parent1.input_nodes[i].get_weight(x))
 
             offspring.input_nodes[i] = InputNode(weights, 0)
+
+        for y in range(len(parent1.hidden_layers)-1):
+            for i in range(hiddenNodeLength):
+                geneSplit1 = random.randrange(1, hiddenNodeLength - 1)
+                if geneSplit1 > hiddenNodeLength // 2:
+                    geneSplit2 = random.randrange(1, geneSplit1)
+                else:
+                    geneSplit2 = random.randrange(geneSplit1, hiddenNodeLength - 1)
+
+                weights = []
+                for x in range(hiddenNodeLength):
+                    if random.uniform(0, 1) <= mutationRate:
+                        weights.append(random.uniform(-self.weight_initialization, self.weight_initialization))
+                        print("Mutation!")
+                    else:
+                        if x < geneSplit1:
+                            weights.append(parent1.hidden_layers[y][i].get_weight(x))
+                        elif x < geneSplit2:
+                            weights.append(parent2.hidden_layers[y][i].get_weight(x))
+                        else:
+                            weights.append(parent1.hidden_layers[y][i].get_weight(x))
+
+                offspring.hidden_layers[y][i] = HiddenNode(weights, 0)
+
+        for i in range(hiddenNodeLength):
+            geneSplit1 = random.randrange(1, outputNodeLength - 1)
+            if geneSplit1 > outputNodeLength // 2:
+                geneSplit2 = random.randrange(1, geneSplit1)
+            else:
+                geneSplit2 = random.randrange(geneSplit1, outputNodeLength - 1)
+
+            weights = []
+            for x in range(outputNodeLength):
+                if random.uniform(0, 1) <= mutationRate:
+                    weights.append(random.uniform(-self.weight_initialization, self.weight_initialization))
+                else:
+                    if x < geneSplit1:
+                        weights.append(parent1.hidden_layers[numOfHiddenLayers - 1][i].get_weight(x))
+                    elif x < geneSplit2:
+                        weights.append(parent2.hidden_layers[numOfHiddenLayers - 1][i].get_weight(x))
+                    else:
+                        weights.append(parent1.hidden_layers[numOfHiddenLayers - 1][i].get_weight(x))
+
+            offspring.hidden_layers[numOfHiddenLayers - 1][i] = HiddenNode(weights, 0)
         return offspring
 
 
@@ -170,7 +210,7 @@ class NeuralNet:
             for x in range(len(self.hidden_layers[i])):
                 temp_weights = []
                 for y in range(len(self.hidden_layers[i-1])):
-                    temp_weights.append(self.hidden_layers[i-1][y].get_out_weight(x))
+                    temp_weights.append(self.hidden_layers[i-1][y].get_weight(x))
                 hidden_weights.append(temp_weights)
 
             hidden_weights = np.array(hidden_weights).reshape(len(self.hidden_layers[0]), len(self.hidden_layers[0]))
@@ -195,7 +235,7 @@ class NeuralNet:
         for x in range(len(self.output_nodes)):
             temp_weights = []
             for y in range(len(self.hidden_layers[len(self.hidden_layers)-1])):
-                temp_weights.append(self.hidden_layers[len(self.hidden_layers)-1][y].get_out_weight(x))
+                temp_weights.append(self.hidden_layers[len(self.hidden_layers)-1][y].get_weight(x))
             output_weights.append(temp_weights)
 
         outputs = np.dot(np.array(output_weights), np.array(last_hidden_activations))
