@@ -22,8 +22,8 @@ class OutputNode:
 
 class InputNode:
 
-    def __init__(self, inputs, out_weights, bias):
-        self.inputs = inputs
+    def __init__(self, out_weights, bias):
+        self.inputs = []
         self.out_weights = out_weights
         self.bias = bias
 
@@ -68,9 +68,7 @@ class NeuralNet:
             for x in range(num_of_hidden_nodes):
                 weights.append(random.uniform(-weight_initialization, weight_initialization))
 
-            # INPUTS ARE A NULL LIST ATM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            inputs = []
-            self.input_nodes.append(InputNode(inputs, weights, 0))
+            self.input_nodes.append(InputNode(weights, 0))
 
         # INITIALIZE HIDDEN NODES
         self.hidden_layers = []
@@ -105,6 +103,34 @@ class NeuralNet:
             # OUTPUT NOT INITIALIZED YET !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             output = []
             self.output_nodes.append(OutputNode(weights, output, 0))
+
+    def offspring(self, parent1, parent2):
+
+        offspring = NeuralNet(len(parent1.input_nodes), len(parent1.hidden_layers), len(parent1.hidden_layers[0]), len(parent1.output_nodes))
+        inputNodeLength = len(parent1.input_nodes)
+        hiddenNodeLength = len(parent1.hidden_layers[0])
+        for i in range(inputNodeLength):
+            geneSplit1 = random.randrange(1, hiddenNodeLength-1)
+            if geneSplit1 > hiddenNodeLength//2:
+                geneSplit2 = random.randrange(1, geneSplit1)
+            else:
+                geneSplit2 = random.randrange(geneSplit1 + 1, hiddenNodeLength-1)
+
+            weights = []
+            for x in range(hiddenNodeLength):
+                if x < geneSplit1:
+                    weights.append(parent1.input_nodes[i].get_weight(x))
+                elif x < geneSplit2:
+                    weights.append(parent2.input_nodes[i].get_weight(x))
+                else:
+                    weights.append(parent1.input_nodes[i].get_weight(x))
+
+            offspring.input_nodes[i] = InputNode(weights, 0)
+        return offspring
+
+
+
+
 
     def forward_propagate(self, inputs):
 
@@ -178,7 +204,7 @@ class NeuralNet:
         for i in range(len(outputs)):
             self.output_nodes[i].set_output(sigmoid(outputs[i]))
 
-    def getMovement(self):
+    def getOutput(self):
         output = []
         for i in range(len(self.output_nodes)):
             output.append(self.output_nodes[i].get_output())
@@ -191,3 +217,6 @@ class NeuralNet:
 
 a = NeuralNet(16, 2, 16, 4)
 a.forward_propagate([200,200,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7])
+b = NeuralNet(16, 2, 16, 4)
+
+c = a.offspring(a, b)
