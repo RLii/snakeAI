@@ -3,26 +3,14 @@ import random
 import NeuralNetwork
 import numpy as np
 
-pygame.init()
-DISPLAY = pygame.display.set_mode((800, 600))
-pygame.display.set_caption('Snake!')
-
-white = (255, 255, 255)
-black = (0, 0, 0)
-red = (255, 0, 0)
-
-
-clock = pygame.time.Clock()
-speed = 15
-
-DISPLAY_width = 800
-DISPLAY_height = 600
-font_style = pygame.font.SysFont(None, 30)
-
-
-def show_score(length):
+def show_score(length, DISPLAY, font_style):
     DISPLAY.blit(font_style.render("Score: " + str(length-1), True, (255, 255, 255)), [0, 0])
 
+def show_generation(generation, DISPLAY, font_style):
+    DISPLAY.blit(font_style.render("Generation: " + str(generation), True, (255, 255, 255)), [600, 545])
+
+def show_specieNum(specieNum, DISPLAY, font_style):
+    DISPLAY.blit(font_style.render("SpeciesNum: " + str(specieNum), True, (255, 255, 255)), [600, 575])
 
 def check_collision(x, y, list):
     for i in list:
@@ -30,12 +18,12 @@ def check_collision(x, y, list):
             return True
     return False
 
-def draw_snake(length, list):
+def draw_snake(length, list, DISPLAY, white):
     for x in list:
         pygame.draw.rect(DISPLAY, white, [x[0], x[1], length, length], 2)
 
 
-def message(msg, color):
+def message(msg, color, DISPLAY, font_style):
     mesg = font_style.render(msg, True, color)
     DISPLAY.blit(mesg, [200, 150])
 
@@ -78,7 +66,7 @@ def getTailDirection(snake_list):
     return list
 
 
-def getSnakeVisuals(x1, y1, snake_list):
+def getSnakeVisuals(x1, y1, snake_list, DISPLAY_width, DISPLAY_height):
     xVision = [-1] * 2
     yVision = [-1] * 2
     for i in range(len(snake_list)):
@@ -108,9 +96,24 @@ def getFitness(time_alive, apples):
     return time_alive + (np.power(2, apples) + np.power(apples, 2.1) * 300) - (np.power(apples, 1.2) * np.power(time_alive*.25, 1.3))
 
 
-def gameLoop(iterations):
+def gameLoop(NeuralNets, generationNumber = "NA"):
+    pygame.init()
+    DISPLAY = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption('Snake!')
+
+    white = (255, 255, 255)
+    black = (0, 0, 0)
+    red = (255, 0, 0)
+
+    clock = pygame.time.Clock()
+    speed = 75
+
+    DISPLAY_width = 800
+    DISPLAY_height = 600
+    font_style = pygame.font.SysFont(None, 30)
+
     evolution_results = []
-    for i in range(iterations):
+    for i in range(len(NeuralNets)):
         x1 = 400
         y1 = 300
 
@@ -122,20 +125,21 @@ def gameLoop(iterations):
         alive = True
         game_close = False
 
-        snake_list = [[360, 300], [380, 300]]
-        snake_length = 3
+        snake_list = [[320, 300], [340, 300], [360, 300], [380, 300], [400, 300]]
+        snake_length = 5
 
         foodX = random.randrange(0, DISPLAY_width - block_movement, block_movement)
         foodY = random.randrange(0, DISPLAY_height - block_movement, block_movement)
 
         alive_multiplier = 1
         alive = True
-        nn = NeuralNetwork.NeuralNet(16, 2, 8, 4)
+        nn = NeuralNets[i]
+
         while alive:
             # Human Controls
             #while not alive:
             #    DISPLAY.fill(black)
-            #    message("Game Over, Press q to quit, r to restart", white)
+            #    message("Game Over, Press q to quit, r to restart", white, DISPLAY, font_style)
             #    pygame.display.update()
             #    for event in pygame.event.get():
             #        if event.type == pygame.KEYDOWN:
@@ -165,7 +169,7 @@ def gameLoop(iterations):
             #           y1_change = -block_movement
 
             # NeuralNet Controls
-            params = getSnakeVisuals(x1, y1, snake_list) + getAppleQuadrant(foodX, foodY, x1, y1) + getHeadDirection(x1_change, y1_change) + getTailDirection(snake_list)
+            params = getSnakeVisuals(x1, y1, snake_list, DISPLAY_width, DISPLAY_height) + getAppleQuadrant(foodX, foodY, x1, y1) + getHeadDirection(x1_change, y1_change) + getTailDirection(snake_list)
             nn.forward_propagate(params)
             movement = nn.getOutput()
             if movement[0] == 1:
@@ -187,14 +191,14 @@ def gameLoop(iterations):
             if check_collision(x1, y1, snake_list):
                 alive = False
                 list = []
-                list.append(getFitness(alive_multiplier, snake_length-3))
+                list.append(getFitness(alive_multiplier, snake_length-5))
                 list.append(nn)
                 evolution_results.append(list)
 
             if x1 >= DISPLAY_width or y1 >= DISPLAY_height or x1 < 0 or y1 < 0:
                 alive = False
                 list = []
-                list.append(getFitness(alive_multiplier, snake_length-3))
+                list.append(getFitness(alive_multiplier, snake_length-5))
                 list.append(nn)
                 evolution_results.append(list)
 
@@ -205,10 +209,12 @@ def gameLoop(iterations):
             if len(snake_list) > snake_length:
                 del snake_list[0]
 
-            show_score(snake_length)
+            show_generation(generationNumber, DISPLAY, font_style)
+            show_score(snake_length, DISPLAY, font_style)
+            show_specieNum(i+1, DISPLAY, font_style)
             pygame.draw.rect(DISPLAY, red, [foodX, foodY, block_movement, block_movement])
 
-            draw_snake(block_movement, snake_list)
+            draw_snake(block_movement, snake_list, DISPLAY, white)
 
             pygame.display.update()
             if x1 == foodX and y1 == foodY:
@@ -216,6 +222,10 @@ def gameLoop(iterations):
                 foodY = random.randrange(0, DISPLAY_height - block_movement, block_movement)
                 snake_length += 1
             alive_multiplier = alive_multiplier + 1
+
+            if alive_multiplier > 15000:
+                alive = False
+
             clock.tick(speed)
 
 
@@ -223,4 +233,3 @@ def gameLoop(iterations):
     return evolution_results
 
 
-print(gameLoop(100))
