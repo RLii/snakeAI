@@ -76,5 +76,6 @@ class Timeline:
 
 
 a = Timeline()
-a.NewEvolution(100,250)
-# a.playback("Timeline1")
+a.NewEvolution(25, 50)
+
+#a.playback("TimelineLOOP")

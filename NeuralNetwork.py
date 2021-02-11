@@ -104,10 +104,7 @@ class NeuralNet:
 
         for i in range(inputNodeLength):
             geneSplit1 = random.randrange(1, hiddenNodeLength-1)
-            if geneSplit1 > hiddenNodeLength//2:
-                geneSplit2 = random.randrange(1, geneSplit1)
-            else:
-                geneSplit2 = random.randrange(geneSplit1, hiddenNodeLength-1)
+            geneSplit2 = random.randrange(geneSplit1, hiddenNodeLength - 1)
 
             weights = []
             for x in range(hiddenNodeLength):
@@ -126,10 +123,7 @@ class NeuralNet:
         for y in range(len(parent1.hidden_layers)-1):
             for i in range(hiddenNodeLength):
                 geneSplit1 = random.randrange(1, hiddenNodeLength - 1)
-                if geneSplit1 > hiddenNodeLength // 2:
-                    geneSplit2 = random.randrange(1, geneSplit1)
-                else:
-                    geneSplit2 = random.randrange(geneSplit1, hiddenNodeLength - 1)
+                geneSplit2 = random.randrange(geneSplit1, hiddenNodeLength-1)
 
                 weights = []
                 for x in range(hiddenNodeLength):
@@ -148,10 +142,7 @@ class NeuralNet:
 
         for i in range(hiddenNodeLength):
             geneSplit1 = random.randrange(1, outputNodeLength - 1)
-            if geneSplit1 > outputNodeLength // 2:
-                geneSplit2 = random.randrange(1, geneSplit1)
-            else:
-                geneSplit2 = random.randrange(geneSplit1, outputNodeLength - 1)
+            geneSplit2 = random.randrange(geneSplit1, outputNodeLength -1)
 
             weights = []
             for x in range(outputNodeLength):

@@ -93,7 +93,7 @@ def getSnakeVisuals(x1, y1, snake_list, DISPLAY_width, DISPLAY_height):
 
 
 def getFitness(time_alive, apples):
-    return time_alive + (np.power(2, apples) + np.power(apples, 2.1) * 300) - (np.power(apples, 1.2) * np.power(time_alive*.25, 1.3))
+    return time_alive + (np.power(1.6, apples) + np.power(apples, 1.9) * 30) - (np.power(apples, 1.2) * np.power(time_alive*.25, 1.3))
 
 
 def gameLoop(NeuralNets, generationNumber = "NA"):
