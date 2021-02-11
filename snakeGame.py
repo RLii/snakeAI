@@ -151,7 +151,7 @@ def gameLoop(NeuralNets, generationNumber = "NA"):
 
 
             #Controls
-            #for event in pygame.event.get():
+            for event in pygame.event.get():
             #    if event.type == pygame.QUIT:
             #        alive = False
             #    if event.type == pygame.KEYDOWN:
@@ -167,6 +167,14 @@ def gameLoop(NeuralNets, generationNumber = "NA"):
             #       elif event.key == pygame.K_UP:
             #           x1_change = 0
             #           y1_change = -block_movement
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        alive = False
+                        list = []
+                        list.append(getFitness(alive_multiplier, snake_length-5))
+                        list.append(nn)
+                        evolution_results.append(list)
+
 
             # NeuralNet Controls
             params = getSnakeVisuals(x1, y1, snake_list, DISPLAY_width, DISPLAY_height) + getAppleQuadrant(foodX, foodY, x1, y1) + getHeadDirection(x1_change, y1_change) + getTailDirection(snake_list)
